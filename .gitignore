@@ -1,5 +1,6 @@
 __pycache__/
 .env
 *.txt
+!requirements.txt
 *.json
 price_history/

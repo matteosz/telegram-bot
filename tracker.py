@@ -1,5 +1,4 @@
 from datetime import date
-from string_process import tokenize
 from driver import run_driver, close_driver, create_driver
 from price import save_price, read_price, convert_price
 from notify import alert
