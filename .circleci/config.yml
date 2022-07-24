@@ -45,5 +45,5 @@ workflows:
     jobs:
       - build
       - play:
-        requires:
+          requires:
           - build
