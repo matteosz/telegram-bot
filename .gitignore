@@ -4,5 +4,4 @@ __pycache__/
 !requirements.txt
 *.json
 price_history/
-Procfile
-circleci/
+circleci/*
