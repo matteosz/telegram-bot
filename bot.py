@@ -225,11 +225,11 @@ def run():
     application.add_handler(conv_handler)
 
     # Run the bot until KeyboardInterruption or SystemExit
-    #application.run_polling()
-    application.run_webhook(listen="0.0.0.0",
-                            port = PORT,
-                            url_path=str(TOKEN),
-                            webhook_url=HEROKU_LINK+str(TOKEN))
+    application.run_polling()
+    #application.run_webhook(listen="0.0.0.0",
+    #                        port = PORT,
+    #                        url_path=str(TOKEN),
+    #                        webhook_url=HEROKU_LINK+str(TOKEN))
 
 if __name__ == '__main__':
     run()
