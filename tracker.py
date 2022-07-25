@@ -46,14 +46,14 @@ def track_product(search, threshold,chat_id,clock):
                 if converted_prices[i] != -1 and int(column[i]) > converted_prices[i]:
                     column[i] = converted_prices[i]
                     if converted_prices[i] <= 1.05 * threshold:
-                        alert(converted_prices[i],links[i],0,chat_id)
+                        alert(converted_prices[i],links[i],chat_id)
         else:
             column = converted_prices
             last_col = price.iloc[:,-1:].values.tolist()
             for i in range(len(column)):
                 if converted_prices[i] != -1 and converted_prices[i] <= 1.05 * threshold:
                     if last_col[i][0] in europe.keys() or int(last_col[i][0]) != converted_prices[i]: # trigger if different price occurred
-                        alert(converted_prices[i],links[i],0,chat_id)
+                        alert(converted_prices[i],links[i],chat_id)
 
         price[current_date] = column
 

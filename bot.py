@@ -23,7 +23,7 @@ load_dotenv() # load vars in .env
 
 TOKEN = os.getenv('BOT_TOKEN')
 HEROKU_LINK = str(os.getenv('HEROKU'))
-PORT = int(os.environ.get('PORT', '8443'))
+PORT = int(os.environ.get('PORT', 5000))
 MENU, REGISTER1, REGISTER2, DELETE = range(4)
 CLOCK = 1800 # seconds
 
