@@ -1,3 +1,4 @@
+from email.mime import application
 import logging, os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
@@ -22,29 +23,9 @@ logger = logging.getLogger(__name__)
 load_dotenv() # load vars in .env
 
 TOKEN = os.getenv('BOT_TOKEN')
+PORT = int(os.environ.get('PORT', 5000))
 MENU, REGISTER1, REGISTER2, DELETE = range(4)
-CLOCK = 3600 # seconds
-
-#def read_chatid():
-#    try:
-#        with open('log_chat_id.txt','r') as openfile:
-#            chatid = int(openfile.read().splitlines()[-1])
-#    except:
-#        print('Error in retrieving the last chat id')
-#        chatid = -1
-#
-#    return chatid
-#def update_chatid(chatid):
-#    chat_id = chatid
-#    try:
-#        with open('log_chat_id.txt','r') as openfile:
-#            chatid = int(openfile.read().splitlines()[-1])
-#        if chatid != chat_id: # Stores only new chat.id
-#            with open('log_chat_id.txt','a') as openfile:
-#                openfile.write(str(chat_id) + '\n')
-#    except:
-#        pass
-#    return
+CLOCK = 1800 # seconds
 
 async def start(update, context): # After /start command display main menu
 
@@ -230,7 +211,7 @@ def run():
     global trackers, running, id_chat
     trackers, running, id_chat = {}, [False], [-1]
 
-    # Add conversation handler with the states
+    # Conversation handler with the states
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
@@ -245,8 +226,11 @@ def run():
 
     # Run the bot until KeyboardInterruption or SystemExit
     application.run_polling()
+    #application.run_webhook(listen="0.0.0.0",
+    #                        port = PORT,
+    #                        url_path=str(TOKEN),
+    #                        webhook_url='https://yourherokuappname.herokuapp.com/' + str(TOKEN))
 
-    print('System shut down!')
 
 
 if __name__ == '__main__':
