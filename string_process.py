@@ -1,7 +1,8 @@
-import string
+import string, re
 from fuzzywuzzy import fuzz
 
 def tokenize(s):
+    # Remove punctuation and return the list of words from a string
     for c in string.punctuation:
         s = s.replace(c, ' ')
     t = s.replace('nbsp',' ').split(' ')
@@ -21,3 +22,12 @@ def compare(description,search):
                 match += 1
                 break 
     return match
+
+def extract_subitem(pattern,text):
+    # Extract the text contained in the pattern
+    try:
+        out = re.search(pattern, text).group(1)
+    except:
+        out = None
+    return out
+    

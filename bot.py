@@ -1,5 +1,5 @@
 import logging, os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     MessageHandler, 
     filters, 
@@ -19,32 +19,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+load_dotenv() # load vars in .env
 
 TOKEN = os.getenv('BOT_TOKEN')
 MENU, REGISTER1, REGISTER2, DELETE = range(4)
+CLOCK = 3600 # seconds
 
-def read_chatid():
-    try:
-        with open('log_chat_id.txt','r') as openfile:
-            chatid = int(openfile.read().splitlines()[-1])
-    except:
-        chatid = 664231804 #hardcoded - to be changed
-    return chatid
-def update_chatid(chatid):
-    chat_id = chatid
-    try:
-        with open('log_chat_id.txt','r') as openfile:
-            chatid = int(openfile.read().splitlines()[-1])
-        if chatid != chat_id: # Stores only new chat.id
-            with open('log_chat_id.txt','a') as openfile:
-                openfile.write(str(chat_id) + '\n')
-    except:
-        pass
-    return
+#def read_chatid():
+#    try:
+#        with open('log_chat_id.txt','r') as openfile:
+#            chatid = int(openfile.read().splitlines()[-1])
+#    except:
+#        print('Error in retrieving the last chat id')
+#        chatid = -1
+#
+#    return chatid
+#def update_chatid(chatid):
+#    chat_id = chatid
+#    try:
+#        with open('log_chat_id.txt','r') as openfile:
+#            chatid = int(openfile.read().splitlines()[-1])
+#        if chatid != chat_id: # Stores only new chat.id
+#            with open('log_chat_id.txt','a') as openfile:
+#                openfile.write(str(chat_id) + '\n')
+#    except:
+#        pass
+#    return
 
 async def start(update, context): # After /start command display main menu
-    
+
     if update.message:
         await update.message.reply_text(main_menu_message(update),
                                 reply_markup=main_menu_keyboard())
@@ -58,7 +61,10 @@ async def start(update, context): # After /start command display main menu
         await query.edit_message_text(main_menu_message(update),
                                 reply_markup=main_menu_keyboard())
 
-    update_chatid(mex.chat.id)
+    if not running[0]:
+        id_chat[0] = mex.chat.id
+        resume_trackers()
+        running[0] = True
 
     logger.info("User %s started the main menu", username)
     return MENU
@@ -69,6 +75,18 @@ async def stop(update, context):
     await query.edit_message_text(text="Bye! Type /start whenever you're ready again")
     logger.info("User %s ended the conversation.", query.from_user.username)
     return ConversationHandler.END
+
+# Exit, empty the product list and stop all the trackings
+async def exit(update, context):
+    await update.message.reply_text(exit_message(),
+                                reply_markup=ReplyKeyboardRemove())
+    
+    with open('product_list.txt','w+') as openfile:
+        openfile.write('')
+    for key in trackers.keys():
+        trackers[key].terminate()
+
+    raise KeyboardInterrupt()
 
 async def first_menu(update,context):
     query = update.callback_query
@@ -119,6 +137,8 @@ def first_menu_message():
     return 'To monitor a product type it in a message or go back'
 def second_menu_message():
     return 'Tap on the products you want to forget or go back'
+def exit_message():
+    return 'Shutting down the system...'
 
 async def register1(update, context):
     user = update.message.from_user
@@ -152,7 +172,7 @@ async def register2(update, context):
 
         # Start the tracking on a separate process
         key = search.replace(' ','_')
-        trackers[key] = Process(target=track_product, args=(search,threshold,chat_id))
+        trackers[key] = Process(target=track_product, args=(search,threshold,id_chat[0],CLOCK))
         trackers[key].start()
         
         await update.message.reply_text('Product registered correctly, tracking is started! Returning to main menu...')
@@ -193,26 +213,22 @@ async def delete(update, context):
     return DELETE
 
 def resume_trackers():
-    track = {}
-
     try:
         with open('product_list.txt','r') as openfile:
             lines = openfile.read().splitlines() 
 
         for line in lines:
             key = line.split(',')[0].replace(' ','_')
-            track[key] = Process(target=track_product, args=(line.split(',')[0],int(line.split(',')[1][1:]),chat_id))
-            track[key].start()
+            trackers[key] = Process(target=track_product, args=(line.split(',')[0],int(line.split(',')[1][1:]),id_chat[0],CLOCK))
+            trackers[key].start()
     except:
         pass
-    return track
 
 def run():
     application = Application.builder().token(TOKEN).build()
 
-    global trackers, chat_id
-    chat_id = read_chatid()
-    trackers = resume_trackers()
+    global trackers, running, id_chat
+    trackers, running, id_chat = {}, [False], [-1]
 
     # Add conversation handler with the states
     conv_handler = ConversationHandler(
@@ -223,12 +239,15 @@ def run():
             REGISTER2: [MessageHandler(filters.Regex('^[0-9]+$'), register2)],
             DELETE: [CallbackQueryHandler(start, pattern='main'), CallbackQueryHandler(delete, pattern='button.+')],# pattern is a Regex
         },
-        fallbacks=[CommandHandler("stop", stop), CallbackQueryHandler(stop, pattern='stop')],
+        fallbacks=[CommandHandler("forcestop", exit)],
     )
     application.add_handler(conv_handler)
 
-    # Run the bot until the user presses Ctrl-C
+    # Run the bot until KeyboardInterruption or SystemExit
     application.run_polling()
+
+    print('System shut down!')
+
 
 if __name__ == '__main__':
     run()

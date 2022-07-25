@@ -1,9 +1,10 @@
+from cmath import inf
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
-from string_process import compare
+from string_process import compare, extract_subitem
 import re
 
 europe = {'it/' : 'Italy' ,
@@ -31,14 +32,13 @@ def run_driver(driver,suffix,search):
         search = search.remove('')
     except:
         pass
-    keywords_count = len(search)
 
     # Go to Amazon
     try:
         driver.get(url + suffix)
     except:
         print('Impossible to reach Amazon ' + europe[suffix])
-        return err_val,err_link
+        return err_val, err_link
 
     # wait the loading of the page
     driver.implicitly_wait(5) 
@@ -51,27 +51,43 @@ def run_driver(driver,suffix,search):
         search_button.click()
     except:
         print('Buttons not found in the region ' + europe[suffix])
-        return err_val,err_link
+        return err_val, err_link
 
     # wait the loading of the page
     driver.implicitly_wait(5)
 
     # Find the closest match
-    items = driver.find_elements(by=By.CSS_SELECTOR, value="a[class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal'") # find all the links of the products in the page
+    #items = driver.find_elements(by=By.CSS_SELECTOR, value="a[class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal'") # find all the links of the products in the page
+    items = driver.find_elements(by=By.CSS_SELECTOR, value="div[class='s-card-container s-overflow-hidden aok-relative s-expand-height s-include-content-margin s-latency-cf-section s-card-border']") # find all products in the main page
+
     max_value = -1
+    min_price = inf
     product_url = ''
+
     for item in items:
-        description = re.sub("<.*?>", '',item.get_attribute('innerHTML')) # extract the product description
+        text = item.get_attribute('innerHTML')
+        #description = re.sub("<.*?>", '',items[i].get_attribute('innerHTML')) # extract the product description
+        description = extract_subitem('<span class="a-size-base-plus a-color-base a-text-normal">(.*?)</span>', text)
+        amount = extract_subitem('<span class="a-price-whole">(.*?)</span>', text)
+
+        if description is None:
+            continue
+        if amount is None:
+            amount = inf
+        else:
+            amount = int(amount.replace('"','').replace(',','').replace('.','').replace(' ','').replace('\u202f','')[:-2])
+        
         c = compare(description,search)
-        if c > max_value: # take the most accurate description but at least 85% compliant
+        
+        if c > max_value or (c == max_value and amount < min_price): # take the most accurate description, if even then take lowest price
             max_value = c
-            product_url = item.get_attribute('href')
-            if c == keywords_count: # perfect match = all searched keywords in the product description
-                break
+            min_price = amount
+            #product_url = item.get_attribute('href')
+            product_url = url + suffix[:-1] + extract_subitem('<a class="a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal" href="(.*?)">', text)
     
     if max_value == -1:
         print('Impossible to find the product with your keywords in Amazon ' + europe[suffix])
-        return err_val,err_link
+        return err_val, err_link
 
     # wait the loading of the page
     driver.implicitly_wait(5)
@@ -81,25 +97,24 @@ def run_driver(driver,suffix,search):
         driver.get(product_url)
     except: 
         print('Impossible to reach Amazon ' + europe[suffix] + "'s product page")
-        return err_val,err_link
+        return err_val, err_link
     
     # wait the loading of the page
     driver.implicitly_wait(5) 
 
+    # Check if the seller is Amazon and item is new
+    price_value = str(min_price)
     try:
-        currency = driver.find_element(by=By.CLASS_NAME, value="a-price-symbol").get_attribute('innerHTML')
-        price_value = re.sub("<.*?>", '',driver.find_element(by=By.CLASS_NAME, value="a-price-whole").get_attribute('innerHTML').replace('"','').replace(',','').replace('.','').replace(' ','').replace('\u202f','')) # extract price value
+        currency = driver.find_element(by=By.CLASS_NAME, value="a-price-symbol").get_attribute('innerHTML') # extract currency information
     except:
         print('Product not available from Amazon ' + europe[suffix])
-        return err_val,err_link
-
-    option2 = ''
+        return err_val, err_link
 
     try:
         option1 = driver.find_elements(by=By.CLASS_NAME, value="a-size-small") # seller and sender
         option2 = re.sub("<.*?>", '',driver.find_element(by=By.ID, value='merchant-info').get_attribute('innerHTML')).replace(' ','').replace('\n','')
     except: 
-        pass
+        option2 = ''
 
     i = 0
     for item in option1:
@@ -110,10 +125,10 @@ def run_driver(driver,suffix,search):
 
     if i == 2 or option2 == 'DispatchedfromandsoldbyAmazon.':
         print('Product found from Amazon ' + europe[suffix] + ' at ' + currency + price_value)
-        return currency + price_value,product_url
+        return currency + price_value, product_url
     
     print('Product not sold from Amazon in ' + europe[suffix])
-    return err_val,err_link
+    return err_val, err_link
 
 def close_driver(driver):
     driver.quit()

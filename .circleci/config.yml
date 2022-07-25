@@ -27,8 +27,9 @@ jobs:
     # CircleCI will report the results back to your VCS provider.
     steps:
       - checkout
+      - run: pip install --upgrade pip
       - run: pip uninstall telegram -y
-      - run: pip install python-telegram-bot --upgrade
+      - run: pip3 install python-telegram-bot --upgrade
       - python/install-packages:
           pkg-manager: pip
           # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
