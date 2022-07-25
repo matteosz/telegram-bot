@@ -20,9 +20,8 @@ def track_product(search, threshold,chat_id,clock):
         print(search + ' -> Round ' + str(round))
 
         current_date = str(date.today())
-
         driver = create_driver()
-        
+
         # Read previous prices from the csv file
         price = read_price(search)
 
@@ -31,7 +30,8 @@ def track_product(search, threshold,chat_id,clock):
         converted_prices = []
         links = []
         for suffix in europe.values():
-            x,y = run_driver(driver,suffix,search)
+            x,y = run_driver(driver,suffix,search,threshold)
+
             found_prices.append(x)
             if x == '-':
                 converted_prices.append(-1)
@@ -43,7 +43,7 @@ def track_product(search, threshold,chat_id,clock):
         if current_date in price:
             column = list(price[current_date])
             for i in range(len(column)):
-                if converted_prices[i] != -1 and int(column[i]) > converted_prices[i]:
+                if converted_prices[i] != -1 and (int(column[i]) == -1 or int(column[i]) > converted_prices[i]):
                     column[i] = converted_prices[i]
                     if converted_prices[i] <= 1.05 * threshold:
                         alert(converted_prices[i],links[i],chat_id)
@@ -63,4 +63,4 @@ def track_product(search, threshold,chat_id,clock):
         #Close the driver
         close_driver(driver)
 
-        time.sleep(clock) # 1 hour timeout
+        time.sleep(clock)

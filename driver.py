@@ -1,8 +1,8 @@
 from cmath import inf
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
-#from selenium.webdriver.chrome.service import Service as ChromeService
-#from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from string_process import compare, extract_subitem
 import re, os
@@ -18,17 +18,18 @@ err_link = ''
 
 def create_driver():
     # Create service and options for the Chrome driver - Heroku Config
-    #service = ChromeService(executable_path=ChromeDriverManager().install())
+    service = ChromeService(executable_path=ChromeDriverManager().install())
     options = ChromeOptions()
 
-    options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-    options.add_argument('--headless')
+    #options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+    #options.add_argument('--headless')
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
+    options.add_argument('--log-level=1')
+    return webdriver.Chrome(service=service,options=options)
+    #return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
 
-    return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
-
-def run_driver(driver,suffix,search):
+def run_driver(driver,suffix,search,threshold):
 
     search = search.split(' ')
     try:
@@ -44,7 +45,7 @@ def run_driver(driver,suffix,search):
         return err_val, err_link
 
     # wait the loading of the page
-    driver.implicitly_wait(5) 
+    driver.implicitly_wait(15) 
 
     # Search the product
     try:
@@ -57,11 +58,13 @@ def run_driver(driver,suffix,search):
         return err_val, err_link
 
     # wait the loading of the page
-    driver.implicitly_wait(5)
+    driver.implicitly_wait(15)
 
     # Find the closest match
     #items = driver.find_elements(by=By.CSS_SELECTOR, value="a[class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal'") # find all the links of the products in the page
     items = driver.find_elements(by=By.CSS_SELECTOR, value="div[class='s-card-container s-overflow-hidden aok-relative s-expand-height s-include-content-margin s-latency-cf-section s-card-border']") # find all products in the main page
+    if len(items) == 0:
+        items = driver.find_elements(by=By.CLASS_NAME, value='sg-col-inner')
 
     max_value = -1
     min_price = inf
@@ -70,11 +73,13 @@ def run_driver(driver,suffix,search):
     for item in items:
         text = item.get_attribute('innerHTML')
         #description = re.sub("<.*?>", '',items[i].get_attribute('innerHTML')) # extract the product description
-        description = extract_subitem('<span class="a-size-base-plus a-color-base a-text-normal">(.*?)</span>', text)
-        amount = extract_subitem('<span class="a-price-whole">(.*?)</span>', text)
+        description = extract_subitem('<span class="a-size-base-plus a-color-base a-text-normal">(.*?)<', text)
+        amount = extract_subitem('<span class="a-price-whole">(.*?)<', text)
 
         if description is None:
-            continue
+            description = extract_subitem('<span class="a-size-medium a-color-base a-text-normal">(.*?)<', text)
+            if description is None:
+                continue
         if amount is None:
             amount = inf
         else:
@@ -82,7 +87,7 @@ def run_driver(driver,suffix,search):
         
         c = compare(description,search)
         
-        if c > max_value or (c == max_value and amount < min_price): # take the most accurate description, if even then take lowest price
+        if c > max_value or (c == max_value and amount < min_price) and amount >= 0.5 * threshold: # take the most accurate description, if even then take lowest price
             max_value = c
             min_price = amount
             #product_url = item.get_attribute('href')
@@ -93,7 +98,7 @@ def run_driver(driver,suffix,search):
         return err_val, err_link
 
     # wait the loading of the page
-    driver.implicitly_wait(5)
+    driver.implicitly_wait(15)
 
     # Open the product page
     try:
@@ -103,7 +108,7 @@ def run_driver(driver,suffix,search):
         return err_val, err_link
     
     # wait the loading of the page
-    driver.implicitly_wait(5) 
+    driver.implicitly_wait(15) 
 
     # Check if the seller is Amazon and item is new
     price_value = str(min_price)
