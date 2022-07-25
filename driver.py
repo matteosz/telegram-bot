@@ -18,16 +18,16 @@ err_link = ''
 
 def create_driver():
     # Create service and options for the Chrome driver - Heroku Config
-    service = ChromeService(executable_path=ChromeDriverManager().install())
+    #service = ChromeService(executable_path=ChromeDriverManager().install())
     options = ChromeOptions()
 
-    #options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+    options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     #options.add_argument('--headless')
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
     options.add_argument('--log-level=1')
-    return webdriver.Chrome(service=service,options=options)
-    #return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
+    #return webdriver.Chrome(service=service,options=options)
+    return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
 
 def run_driver(driver,suffix,search,threshold):
 
@@ -45,7 +45,7 @@ def run_driver(driver,suffix,search,threshold):
         return err_val, err_link
 
     # wait the loading of the page
-    driver.implicitly_wait(15) 
+    driver.implicitly_wait(10) 
 
     # Search the product
     try:
@@ -58,7 +58,7 @@ def run_driver(driver,suffix,search,threshold):
         return err_val, err_link
 
     # wait the loading of the page
-    driver.implicitly_wait(15)
+    driver.implicitly_wait(10)
 
     # Find the closest match
     #items = driver.find_elements(by=By.CSS_SELECTOR, value="a[class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal'") # find all the links of the products in the page
@@ -98,7 +98,7 @@ def run_driver(driver,suffix,search,threshold):
         return err_val, err_link
 
     # wait the loading of the page
-    driver.implicitly_wait(15)
+    driver.implicitly_wait(10)
 
     # Open the product page
     try:
@@ -108,7 +108,7 @@ def run_driver(driver,suffix,search,threshold):
         return err_val, err_link
     
     # wait the loading of the page
-    driver.implicitly_wait(15) 
+    driver.implicitly_wait(10) 
 
     # Check if the seller is Amazon and item is new
     price_value = str(min_price)
