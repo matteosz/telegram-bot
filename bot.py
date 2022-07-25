@@ -13,19 +13,23 @@ from multiprocessing import Process
 from string_process import tokenize
 from tracker import track_product
 
-# Enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+def preprocess():
 
-load_dotenv() # load vars in .env
+    global TOKEN, HEROKU_LINK, PORT, MENU, REGISTER1, REGISTER2, DELETE, CLOCK, logger
 
-TOKEN = str(os.getenv('BOT_TOKEN'))
-HEROKU_LINK = str(os.getenv('HEROKU'))
-PORT = int(os.environ.get('PORT', 5000))
-MENU, REGISTER1, REGISTER2, DELETE = range(4)
-CLOCK = 1800 # seconds
+    # Enable logging
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    )
+    logger = logging.getLogger(__name__)
+
+    load_dotenv() # load vars in .env
+
+    TOKEN = str(os.getenv('BOT_TOKEN'))
+    HEROKU_LINK = str(os.getenv('HEROKU'))
+    PORT = int(os.environ.get('PORT', 5000))
+    MENU, REGISTER1, REGISTER2, DELETE = range(4)
+    CLOCK = 1800 # seconds
 
 async def start(update, context): # After /start command display main menu
 
@@ -232,4 +236,5 @@ def run():
                             webhook_url=HEROKU_LINK+TOKEN)
 
 if __name__ == '__main__':
+    preprocess()
     run()
