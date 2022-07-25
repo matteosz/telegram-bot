@@ -2,10 +2,10 @@ from cmath import inf
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
+#from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from string_process import compare, extract_subitem
-import re
+import re, os
 
 europe = {'it/' : 'Italy' ,
           'de/' : 'Germany' ,
@@ -17,13 +17,16 @@ err_val = '-'
 err_link = ''
 
 def create_driver():
-    # Create service and options for the Chrome driver
-    service = ChromeService(executable_path=ChromeDriverManager().install())
+    # Create service and options for the Chrome driver - Heroku Config
+    #service = ChromeService(executable_path=ChromeDriverManager().install())
     options = ChromeOptions()
-    # Not displaying the driver
-    options.add_argument('--headless')
 
-    return webdriver.Chrome(service=service,options=options)
+    options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+    options.add_argument('--headless')
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--no-sandbox")
+
+    return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
 
 def run_driver(driver,suffix,search):
 

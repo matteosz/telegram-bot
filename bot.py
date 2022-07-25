@@ -229,7 +229,6 @@ def run():
     application.add_handler(conv_handler)
 
     # Run the bot until KeyboardInterruption or SystemExit
-    #application.run_polling()
     application.run_webhook(listen="0.0.0.0",
                             port = PORT,
                             url_path=TOKEN,
