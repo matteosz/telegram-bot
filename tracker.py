@@ -3,6 +3,7 @@ from driver import run_driver, close_driver, create_driver
 from price import save_price, read_price, convert_price
 from notify import alert
 import time
+from pyvirtualdisplay import Display
 
 europe = {'Italy' : 'it/',
         'Germany' : 'de/',
@@ -20,6 +21,9 @@ def track_product(search, threshold,chat_id,clock):
         print(search + ' -> Round ' + str(round))
 
         current_date = str(date.today())
+
+        display = Display(visible=False, size=(400, 400))  
+        display.start()
         driver = create_driver()
 
         # Read previous prices from the csv file
@@ -62,5 +66,6 @@ def track_product(search, threshold,chat_id,clock):
 
         #Close the driver
         close_driver(driver)
+        display.stop()
 
         time.sleep(clock)
