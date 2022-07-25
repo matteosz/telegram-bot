@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 load_dotenv() # load vars in .env
 
 TOKEN = os.getenv('BOT_TOKEN')
+HEROKU_LINK = str(os.getenv('HEROKU'))
 PORT = int(os.environ.get('PORT', 5000))
 MENU, REGISTER1, REGISTER2, DELETE = range(4)
 CLOCK = 1800 # seconds
@@ -224,13 +225,11 @@ def run():
     application.add_handler(conv_handler)
 
     # Run the bot until KeyboardInterruption or SystemExit
-    application.run_polling()
-    #application.run_webhook(listen="0.0.0.0",
-    #                        port = PORT,
-    #                        url_path=str(TOKEN),
-    #                        webhook_url='https://yourherokuappname.herokuapp.com/' + str(TOKEN))
-
-
+    #application.run_polling()
+    application.run_webhook(listen="0.0.0.0",
+                            port = PORT,
+                            url_path=str(TOKEN),
+                            webhook_url=HEROKU_LINK+str(TOKEN))
 
 if __name__ == '__main__':
     run()

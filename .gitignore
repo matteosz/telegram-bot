@@ -5,4 +5,4 @@ __pycache__/
 *.json
 price_history/
 Procfile
-#circleci/
+circleci/
