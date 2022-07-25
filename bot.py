@@ -1,4 +1,3 @@
-from email.mime import application
 import logging, os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
