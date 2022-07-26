@@ -20,12 +20,17 @@ def create_driver():
     # Create service and options for the Chrome driver - Heroku Config
     service = ChromeService(executable_path=ChromeDriverManager().install())
     options = ChromeOptions()
-
+    user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
     options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+    options.add_argument(f'user-agent={user_agent}')
+    options.add_argument("--window-size=1920,1080")
     options.add_argument('--headless')
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
     options.add_argument('--log-level=1')
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--allow-running-insecure-content')
+
     return webdriver.Chrome(service=service,options=options)
     #return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
 
@@ -45,7 +50,7 @@ def run_driver(driver,suffix,search,threshold):
         return err_val, err_link
 
     # wait the loading of the page
-    driver.implicitly_wait(10) 
+    driver.implicitly_wait(5) 
 
     # Search the product
     try:
@@ -58,7 +63,7 @@ def run_driver(driver,suffix,search,threshold):
         return err_val, err_link
 
     # wait the loading of the page
-    driver.implicitly_wait(10)
+    driver.implicitly_wait(5)
 
     # Find the closest match
     #items = driver.find_elements(by=By.CSS_SELECTOR, value="a[class='a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal'") # find all the links of the products in the page
@@ -105,7 +110,7 @@ def run_driver(driver,suffix,search,threshold):
         return err_val, err_link
     
     # wait the loading of the page
-    driver.implicitly_wait(10) 
+    driver.implicitly_wait(5) 
 
     # Check if the seller is Amazon and item is new
     price_value = str(min_price)
