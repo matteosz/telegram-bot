@@ -18,7 +18,7 @@ err_link = ''
 
 def create_driver():
     # Create service and options for the Chrome driver - Heroku Config
-    #service = ChromeService(executable_path=ChromeDriverManager().install())
+    service = ChromeService(executable_path=ChromeDriverManager().install())
     options = ChromeOptions()
 
     options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
@@ -26,8 +26,8 @@ def create_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
     options.add_argument('--log-level=1')
-    #return webdriver.Chrome(service=service,options=options)
-    return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
+    return webdriver.Chrome(service=service,options=options)
+    #return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
 
 def run_driver(driver,suffix,search,threshold):
 

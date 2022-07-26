@@ -230,10 +230,10 @@ def run():
 
     # Run the bot until KeyboardInterruption or SystemExit
     application.run_polling()
-    #application.run_webhook(listen="0.0.0.0",
-    #                        port = PORT,
-    #                        url_path=TOKEN,
-    #                        webhook_url=HEROKU_LINK+TOKEN)
+    application.run_webhook(listen="0.0.0.0",
+                            port = PORT,
+                            url_path=TOKEN,
+                            webhook_url=HEROKU_LINK+TOKEN)
 
 if __name__ == '__main__':
     preprocess()
