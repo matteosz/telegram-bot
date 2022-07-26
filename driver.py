@@ -97,9 +97,6 @@ def run_driver(driver,suffix,search,threshold):
         print('Impossible to find the product with your keywords in Amazon ' + europe[suffix])
         return err_val, err_link
 
-    # wait the loading of the page
-    driver.implicitly_wait(10)
-
     # Open the product page
     try:
         driver.get(product_url)

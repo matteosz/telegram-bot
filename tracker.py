@@ -22,7 +22,7 @@ def track_product(search, threshold,chat_id,clock):
 
         current_date = str(date.today())
 
-        display = Display(visible=False, size=(400, 400))  
+        display = Display(visible=0, size=(400, 400))  
         display.start()
         driver = create_driver()
 
