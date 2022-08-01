@@ -19,17 +19,23 @@ err_link = ''
 def create_driver():
     # Create service and options for the Chrome driver - Heroku Config
     service = ChromeService(executable_path=ChromeDriverManager().install())
+
     options = ChromeOptions()
     user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
     options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     options.add_argument(f'user-agent={user_agent}')
     options.add_argument("--window-size=1920,1080")
+    options.add_argument("--start-maximized")
+    options.add_argument("--disable-extensions")
     options.add_argument('--headless')
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
     options.add_argument('--log-level=1')
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--allow-running-insecure-content')
+    options.add_argument("--disable-gpu")
+    options.add_argument("--proxy-bypass-list=*")
+    options.add_argument("--proxy-server='direct://'")
 
     return webdriver.Chrome(service=service,options=options)
     #return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
