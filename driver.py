@@ -88,7 +88,11 @@ def run_driver(driver,suffix,search,threshold):
         if amount is None:
             amount = inf
         else:
-            amount = int(amount.replace('"','').replace(',','').replace('.','').replace(' ','').replace('\u202f','')[:-2])
+            tmp = amount.replace('"','').replace(',','').replace('.','').replace(' ','').replace('\u202f','')[:-2]
+            if tmp != '':
+                amount = int(tmp)
+            else:
+                amount = inf
         
         c = compare(description,search)
         

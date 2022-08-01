@@ -3,7 +3,6 @@ from driver import run_driver, close_driver, create_driver
 from price import save_price, read_price, convert_price
 from notify import alert
 import time
-from pyvirtualdisplay import Display
 
 europe = {'Italy' : 'it/',
         'Germany' : 'de/',
