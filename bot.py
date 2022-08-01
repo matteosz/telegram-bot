@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from multiprocessing import Process
 from string_process import tokenize
 from tracker import track_product
+from notify import send_text
 
 def preprocess():
 
@@ -29,7 +30,7 @@ def preprocess():
     HEROKU_LINK = str(os.getenv('HEROKU'))
     PORT = int(os.environ.get('PORT', 5000))
     MENU, REGISTER1, REGISTER2, DELETE = range(4)
-    CLOCK = 1800 # seconds
+    CLOCK = 1800 # seconds -> 30min
 
 async def start(update, context): # After /start command display main menu
 
@@ -234,6 +235,10 @@ def run():
                             port = PORT,
                             url_path=TOKEN,
                             webhook_url=HEROKU_LINK+TOKEN)
+
+    send_text('Shut down completed correctly!', id_chat[0])
+    print('Application stopped')
+
 
 if __name__ == '__main__':
     preprocess()
