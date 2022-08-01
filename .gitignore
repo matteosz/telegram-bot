@@ -1,7 +1,7 @@
 __pycache__/
+venv/
 .env
 *.txt
 !requirements.txt
 *.json
 price_history/
-circleci/*
