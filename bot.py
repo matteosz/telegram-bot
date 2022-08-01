@@ -62,17 +62,17 @@ async def stop(update, context):
     logger.info("User %s ended the conversation.", query.from_user.username)
     return ConversationHandler.END
 
-# Exit, empty the product list and stop all the trackings
-async def exit(update, context):
-    await update.message.reply_text(exit_message(),
-                                reply_markup=ReplyKeyboardRemove())
-    
-    with open('product_list.txt','w+') as openfile:
-        openfile.write('')
-    for key in trackers.keys():
-        trackers[key].terminate()
-
-    raise KeyboardInterrupt()
+# Exit, empty the product list and stop all the trackings -> gives problems when hosted
+#async def exit(update, context):
+#    await update.message.reply_text(exit_message(),
+#                                reply_markup=ReplyKeyboardRemove())
+#    
+#    with open('product_list.txt','w+') as openfile:
+#        openfile.write('')
+#    for key in trackers.keys():
+#        trackers[key].terminate()
+#
+#    raise KeyboardInterrupt()
 
 async def first_menu(update,context):
     query = update.callback_query
@@ -225,7 +225,7 @@ def run():
             REGISTER2: [MessageHandler(filters.Regex('^[0-9]+$'), register2)],
             DELETE: [CallbackQueryHandler(start, pattern='main'), CallbackQueryHandler(delete, pattern='button.+')],# pattern is a Regex
         },
-        fallbacks=[CommandHandler("forcestop", exit)],
+        fallbacks=[]#CommandHandler("forcestop", exit)],
     )
     application.add_handler(conv_handler)
 
@@ -236,8 +236,8 @@ def run():
                             url_path=TOKEN,
                             webhook_url=HEROKU_LINK+TOKEN)
 
-    send_text('Shut down completed correctly!', id_chat[0])
-    print('Application stopped')
+    #send_text('Shut down completed correctly!', id_chat[0])
+    #print('Application stopped')
 
 
 if __name__ == '__main__':
