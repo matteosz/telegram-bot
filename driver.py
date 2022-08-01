@@ -94,7 +94,7 @@ def run_driver(driver,suffix,search,threshold):
         if amount is None:
             amount = inf
         else:
-            if bool(re.search("[,\.]..",amount)):
+            if bool(re.search("[,\.]..$",amount)):
                 tmp = amount.replace('"','').replace(',','').replace('.','').replace(' ','').replace('\u202f','')[:-2]
             else:
                 tmp = amount.replace('"','').replace(',','').replace('.','').replace(' ','').replace('\u202f','')
