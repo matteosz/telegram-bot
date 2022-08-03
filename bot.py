@@ -83,10 +83,10 @@ async def exit(update, context):
     
     with open('product_list.txt','w+') as openfile:
         openfile.write('')
-    for key in trackers.keys():
-        trackers[key].terminate()
+    for item in trackers.items():
+        item.terminate()
 
-    raise KeyboardInterrupt()
+    raise KeyboardInterrupt
 
 async def first_menu(update,context):
     query = update.callback_query
@@ -201,7 +201,10 @@ async def delete(update, context):
 
     # Stop the tracking of the product
     key = lines[button_number].split(',')[0].replace(' ','_')
-    trackers[key].terminate()
+    try:
+        trackers[key].terminate()
+    except KeyboardInterrupt as e:
+        logger.error(e)
     
     with open('product_list.txt','w') as openfile:
         openfile.writelines(new_lines)
@@ -245,11 +248,11 @@ def run():
     application.add_handler(CommandHandler("forcestop", exit))
 
     # Run the bot until KeyboardInterruption or SystemExit
-    application.run_polling()
-    #application.run_webhook(listen="0.0.0.0",
-    #                        port = PORT,
-    #                        url_path=TOKEN,
-    #                        webhook_url=HEROKU_LINK+TOKEN)
+    #application.run_polling()
+    application.run_webhook(listen="0.0.0.0",
+                            port = PORT,
+                            url_path=TOKEN,
+                            webhook_url=HEROKU_LINK+TOKEN)
 
     # When run_webhook is stopped
 
