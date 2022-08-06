@@ -30,4 +30,3 @@ def extract_subitem(pattern,text):
     except:
         out = None
     return out
-    

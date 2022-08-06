@@ -13,10 +13,11 @@ from multiprocessing import Process
 from string_process import tokenize
 from tracker import track_product
 from notify import send_text
+from s3 import list_all_files, download_file, upload_file
 
 def preprocess():
 
-    global TOKEN, HEROKU_LINK, PORT, MENU, REGISTER1, REGISTER2, DELETE, CLOCK, logger
+    global TOKEN, HEROKU_LINK, PORT, MENU, REGISTER1, REGISTER2, DELETE, CLOCK, logger, BUCKET_NAME
 
     # Enable logging
     logging.basicConfig(
@@ -29,8 +30,21 @@ def preprocess():
     TOKEN = str(os.getenv('BOT_TOKEN'))
     HEROKU_LINK = str(os.getenv('HEROKU'))
     PORT = int(os.environ.get('PORT', 5000))
+    BUCKET_NAME = str(os.getenv('S3_BUCKET_NAME'))
     MENU, REGISTER1, REGISTER2, DELETE = range(4)
     CLOCK = 1800 # seconds -> 30min
+
+    # download files from AWS S3 bucket
+    files = list_all_files(BUCKET_NAME)
+    for file in files:
+        if file[-1] == '/':
+            # Generate the directory if not present
+            current_directory = os.getcwd()
+            final_directory = os.path.join(current_directory, file[:-1])
+            if not os.path.exists(final_directory):
+                os.makedirs(final_directory)
+        else:
+            download_file(file,BUCKET_NAME,file)
 
 async def start(update, context): # After /start command display main menu
 
@@ -63,16 +77,16 @@ async def stop(update, context):
     return ConversationHandler.END
 
 # Exit, empty the product list and stop all the trackings -> gives problems when hosted
-#async def exit(update, context):
-#    await update.message.reply_text(exit_message(),
-#                                reply_markup=ReplyKeyboardRemove())
-#    
-#    with open('product_list.txt','w+') as openfile:
-#        openfile.write('')
-#    for key in trackers.keys():
-#        trackers[key].terminate()
-#
-#    raise KeyboardInterrupt()
+async def exit(update, context):
+    await update.message.reply_text(exit_message(),
+                                reply_markup=ReplyKeyboardRemove())
+    
+    with open('product_list.txt','w+') as openfile:
+        openfile.write('')
+    for item in trackers.items():
+        item.terminate()
+
+    raise KeyboardInterrupt
 
 async def first_menu(update,context):
     query = update.callback_query
@@ -174,7 +188,7 @@ async def register2(update, context):
 async def delete(update, context):
     query = update.callback_query
     await query.answer()
-    button_number = int(query.data[6:])
+    button_number = int(query.data[6:]) # skip the word button - 6 chars
 
     logger.info("%s pushed the %d° button", query.from_user.username, button_number+1)
 
@@ -187,7 +201,10 @@ async def delete(update, context):
 
     # Stop the tracking of the product
     key = lines[button_number].split(',')[0].replace(' ','_')
-    trackers[key].terminate()
+    try:
+        trackers[key].terminate()
+    except KeyboardInterrupt as e:
+        logger.error(e)
     
     with open('product_list.txt','w') as openfile:
         openfile.writelines(new_lines)
@@ -225,9 +242,10 @@ def run():
             REGISTER2: [MessageHandler(filters.Regex('^[0-9]+$'), register2)],
             DELETE: [CallbackQueryHandler(start, pattern='main'), CallbackQueryHandler(delete, pattern='button.+')],# pattern is a Regex
         },
-        fallbacks=[]#CommandHandler("forcestop", exit)],
+        fallbacks=[],
     )
     application.add_handler(conv_handler)
+    application.add_handler(CommandHandler("forcestop", exit))
 
     # Run the bot until KeyboardInterruption or SystemExit
     #application.run_polling()
@@ -236,8 +254,17 @@ def run():
                             url_path=TOKEN,
                             webhook_url=HEROKU_LINK+TOKEN)
 
-    #send_text('Shut down completed correctly!', id_chat[0])
-    #print('Application stopped')
+    # When run_webhook is stopped
+
+    # Save all generated files 
+    for file in os.listdir('price_history/'):
+        upload_file('price_history/' + file, BUCKET_NAME)
+    for file in ['conv_rates.json', 'product_list.txt']:
+        upload_file(file, BUCKET_NAME)
+
+    # Send stop message
+    send_text('Shut down completed correctly!', id_chat[0])
+    print('Application stopped')
 
 
 if __name__ == '__main__':

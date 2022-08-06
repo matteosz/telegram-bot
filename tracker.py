@@ -21,8 +21,6 @@ def track_product(search, threshold,chat_id,clock):
 
         current_date = str(date.today())
 
-        #display = Display(visible=0, size=(400, 400))  
-        #display.start()
         driver = create_driver()
 
         # Read previous prices from the csv file

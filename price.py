@@ -18,12 +18,6 @@ currencies = {
 filename = ['price_history/',"conv_rates.json"]
 url = 'https://v6.exchangerate-api.com/v6/' + str(os.getenv('PRICE_TOKEN')) + '/latest/EUR'
 
-# Generate the directory price history if not present in the server
-current_directory = os.getcwd()
-final_directory = os.path.join(current_directory, r"price_history")
-if not os.path.exists(final_directory):
-   os.makedirs(final_directory)
-
 class Currency_convertor:
 
     rates = {}
