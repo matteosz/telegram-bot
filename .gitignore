@@ -5,3 +5,4 @@ venv/
 !requirements.txt
 *.json
 price_history/
+.DS_Store
